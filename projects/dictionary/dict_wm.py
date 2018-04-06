@@ -1,26 +1,33 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-  
-import sys
-import os
-import urllib2
+import sys, os, urllib2
 from bs4 import BeautifulSoup
 
-dict_web = 'https://www.merriam-webster.com/dictionary/'
+class Word_grabber:
+    dict_web = 'https://www.merriam-webster.com/dictionary/'
 
-def show_text(text):
-    text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines
-    #text = " ".join([s for s in text.splitlines() if s])   # join lines
-    #text = " ".join(text.split()) # remove multiple spaces 
-    print text
+    def __init__(self, output_string):
+        self.output_string = output_string
 
-def show_objs(objs ):
-    for obj in objs :
-        if not obj.find('script') :
-            show_text(obj.text)
+    def show_text(self, text):
+        text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines
+        #text = " ".join([s for s in text.splitlines() if s])   # join lines
+        #text = " ".join(text.split()) # remove multiple spaces 
+        self.output_string += text
+        print(text)
+
+    def show_objs(self, objs):
+        for obj in objs :
+            if not obj.find('script') :
+                self.show_text(obj.text)
+
 
 def main():
     reload(sys)                         # 2
     sys.setdefaultencoding('utf-8')     # 3
+    wg = Word_grabber('') 
+    wg.show_text('web url is ' + wg.dict_web)
+
     try:
         if len(sys.argv) == 2:
             word_lookup = sys.argv[1]
@@ -28,28 +35,28 @@ def main():
             print 'What do you want to look up?'
             sys.exit(1)
 
-        page = urllib2.urlopen(dict_web + word_lookup)
+        page = urllib2.urlopen(wg.dict_web + word_lookup)
         #result = f.read()
         soup = BeautifulSoup(page, 'html.parser')
         #print(soup.prettify())
 
-        print '\n' + '\t \t' + word_lookup + '\n'  
+        wg.show_text('\n' + '\t \t' + word_lookup + '\n') 
         # pronunciation section
-        print '*************************************'  
+        wg.show_text('*************************************')  
         text = soup.body.find('div', attrs={'class' : 'entry-attr'}).text
         text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines
         text = " ".join(text.split()) # remove multiple spaces 
-        print text
+        wg.show_text(text)
 
         # meaning section
         print '\n**********meaning******************'  
         objs = soup.find_all('div', attrs={'class' : 'vg'})
-        show_objs(objs)
+        wg.show_objs(objs)
 
         # exsamples section
         print '\n**********examples*****************'  
         objs = soup.find_all('ol', attrs={'class' : 'definition-list no-count'})
-        show_objs(objs)
+        wg.show_objs(objs)
 
     except AttributeError:
         print "word can not be found"
@@ -57,6 +64,6 @@ def main():
 
     except TypeError:
         print "NA"
- 
+
 if __name__ == '__main__':
     main()
