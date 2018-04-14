@@ -1,7 +1,10 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-  
-import sys, os, urllib2
+import sys, os 
 from bs4 import BeautifulSoup
+# For Python 3.0 and later
+from urllib.request import urlopen
+from importlib import reload
 
 class Word_grabber:
     dict_web = 'https://www.merriam-webster.com/dictionary/'
@@ -21,21 +24,24 @@ class Word_grabber:
             if not obj.find('script') :
                 self.show_text(obj.text)
 
+    def get_db(self,url):
+        print('trying to get db from url --' + url + '\n')
 
 def main():
     reload(sys)                         # 2
-    sys.setdefaultencoding('utf-8')     # 3
+#    sys.setdefaultencoding('utf-8')     # 3
     wg = Word_grabber('') 
     wg.show_text('web url is ' + wg.dict_web)
+    wg.get_db('./dict_wm.db')
 
     try:
         if len(sys.argv) == 2:
             word_lookup = sys.argv[1]
         else:
-            print 'What do you want to look up?'
+            print ('What do you want to look up?')
             sys.exit(1)
 
-        page = urllib2.urlopen(wg.dict_web + word_lookup)
+        page = urlopen(wg.dict_web + word_lookup)
         #result = f.read()
         soup = BeautifulSoup(page, 'html.parser')
         #print(soup.prettify())
@@ -49,21 +55,21 @@ def main():
         wg.show_text(text)
 
         # meaning section
-        print '\n**********meaning******************'  
+        wg.show_text('\n**********meaning******************') 
         objs = soup.find_all('div', attrs={'class' : 'vg'})
         wg.show_objs(objs)
 
         # exsamples section
-        print '\n**********examples*****************'  
+        wg.show_text('\n**********examples*****************') 
         objs = soup.find_all('ol', attrs={'class' : 'definition-list no-count'})
         wg.show_objs(objs)
 
     except AttributeError:
-        print "word can not be found"
+        print( "word can not be found")
         sys.exit(2)
 
     except TypeError:
-        print "NA"
+        print ("NA")
 
 if __name__ == '__main__':
     main()
