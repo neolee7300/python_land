@@ -9,6 +9,7 @@ from importlib import reload
 class Word_grabber:
     dict_web = 'https://www.merriam-webster.com/dictionary/'
 
+    dict_db = {'lion': {'contents': "hello", 'times' : 1 } }
     def __init__(self, output_string):
         self.output_string = output_string
 
@@ -27,12 +28,13 @@ class Word_grabber:
     def get_db(self,url):
         print('trying to get db from url --' + url + '\n')
 
+    def save_db(self,url):
+        print('trying to save db to url --' + url + '\n')
+
 def main():
     reload(sys)                         # 2
-#    sys.setdefaultencoding('utf-8')     # 3
     wg = Word_grabber('') 
     wg.show_text('web url is ' + wg.dict_web)
-    wg.get_db('./dict_wm.db')
 
     try:
         if len(sys.argv) == 2:
@@ -41,6 +43,11 @@ def main():
             print ('What do you want to look up?')
             sys.exit(1)
 
+        if word_lookup in  wg.dict_db :
+            print(wg.dict_db[word_lookup]['contents'])
+            wg.dict_db[word_lookup]['times'] += 1
+            print(wg.dict_db[word_lookup]['times'])
+           
         page = urlopen(wg.dict_web + word_lookup)
         #result = f.read()
         soup = BeautifulSoup(page, 'html.parser')
