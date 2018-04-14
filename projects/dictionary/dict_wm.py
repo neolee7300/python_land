@@ -5,11 +5,16 @@ from bs4 import BeautifulSoup
 # For Python 3.0 and later
 from urllib.request import urlopen
 from importlib import reload
+# pickle save objects
+import pickle
 
 class Word_grabber:
     dict_web = 'https://www.merriam-webster.com/dictionary/'
 
+    db_url = './dict_db.dict'
+
     dict_db = {'lion': {'contents': "hello", 'times' : 1 } }
+
     def __init__(self, output_string):
         self.output_string = output_string
 
@@ -31,6 +36,14 @@ class Word_grabber:
     def save_db(self,url):
         print('trying to save db to url --' + url + '\n')
 
+    def update_db(self,word_lookup):
+         print(self.dict_db[word_lookup]['contents'])
+         self.dict_db[word_lookup]['times'] += 1
+         print(self.dict_db[word_lookup]['times'])
+
+         with open(self.db_url , 'wb') as f:
+             pickle.dump(self.dict_db, f, pickle.HIGHEST_PROTOCOL)
+
 def main():
     reload(sys)                         # 2
     wg = Word_grabber('') 
@@ -44,9 +57,7 @@ def main():
             sys.exit(1)
 
         if word_lookup in  wg.dict_db :
-            print(wg.dict_db[word_lookup]['contents'])
-            wg.dict_db[word_lookup]['times'] += 1
-            print(wg.dict_db[word_lookup]['times'])
+            wg.update_db(word_lookup)
            
         page = urlopen(wg.dict_web + word_lookup)
         #result = f.read()
