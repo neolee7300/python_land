@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-  
-import sys, os 
+import sys, os, re 
 from bs4 import BeautifulSoup
 # For Python 3.0 and later
 from urllib.request import urlopen
@@ -13,21 +13,27 @@ class Word_grabber:
 
     db_url = './dict_db.dict'
 
-    dict_db = {'lion': {'contents': "hello", 'times' : 1 } }
+    dict_db = {}
 
     def __init__(self, output_string):
         self.output_string = output_string
 
     def show_text(self, text):
         text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines
+        text = re.sub('   *','\n\t',text) # replace continus space to  new line with a tab
+        text = re.sub('\n:',':',text)    # If a line start with : , join the previouse line
+        text = re.sub('\narchaic','  archaic',text) 
+        
+        text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines        
         #text = " ".join([s for s in text.splitlines() if s])   # join lines
         #text = " ".join(text.split()) # remove multiple spaces 
-        self.output_string += text
+        self.output_string += (text +'\n') 
         print(text)
 
     def show_objs(self, objs):
-        for obj in objs :
+        for idx,obj in enumerate(objs) :
             if not obj.find('script') :
+                #self.show_text('Showing obj '+ str(idx) + '....... \n')
                 self.show_text(obj.text)
 
     def load_db(self,url = None):
@@ -51,35 +57,43 @@ class Word_grabber:
             #pickle.dump(self.dict_db, f, pickle.HIGHEST_PROTOCOL)
 
     def update_db(self,word_lookup):
-         self.dict_db[word_lookup]['times'] += 1
-         print(self.dict_db[word_lookup]['times'])
+        self.dict_db[word_lookup]['times'] += 1
+        print('\n******************************************')  
+        print('"' + word_lookup + '" has been checked ' 
+            + str(self.dict_db[word_lookup]['times']) + ' times')        
+        print('******************************************\n')
 
     def grab_word_from_url(self,word_lookup):
         try:
             page = urlopen(self.dict_web + word_lookup)
             #result = f.read()
             soup = BeautifulSoup(page, 'html.parser')
+            self.soup = soup 
             #print(soup.prettify())
 
             self.show_text('\n' + '\t \t' + word_lookup + '\n') 
             # pronunciation section
-            self.show_text('*************************************')  
+            self.show_text('***********************************\n')  
             text = soup.body.find('div', attrs={'class' : 'entry-attr'}).text
             text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines
             text = " ".join(text.split()) # remove multiple spaces 
             self.show_text(text)
 
             # meaning section
-            self.show_text('\n**********meaning******************') 
+            self.show_text('**********meaning******************\n') 
             objs = soup.find_all('div', attrs={'class' : 'vg'})
             self.show_objs(objs)
 
             # exsamples section
-            self.show_text('\n**********examples*****************') 
+            self.show_text('**********examples*****************\n') 
             objs = soup.find_all('ol', attrs={'class' : 'definition-list no-count'})
             self.show_objs(objs)
 
-            self.dict_db.update({word_lookup:{'contents':self.output_string, 'times':1}})
+            print(' \nTrying to add word into db')
+            self.dict_db.update({word_lookup:{'contents':self.output_string,'times':0}})
+            print(' Word is in db')
+
+            self.update_db(word_lookup)
             # clean the output_string for next word
             self.output_string = ''
     
@@ -104,12 +118,10 @@ def main():
     wg.load_db()
     if word_lookup in  wg.dict_db :
         print(wg.dict_db[word_lookup]['contents'])
-        print('The word has been asked for ' + str(wg.dict_db[word_lookup]['times']) + ' times \n')
         wg.update_db(word_lookup)
         wg.save_db()
     else:
         wg.grab_word_from_url(word_lookup)
-        print('The word has been asked for ' + str(wg.dict_db[word_lookup]['times']) + ' times \n')
         wg.save_db()
 
 if __name__ == '__main__':
