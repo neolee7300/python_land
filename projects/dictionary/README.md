@@ -1,7 +1,7 @@
-A python program that grab words'  expanation from online dictionaries. 
+A python program that grab words' explanation from online dictionaries. 
 
 The results were stored in a single large dict variable. The key is the word, the value is a class that stores 
-both the meanings and the counts that word has been checked. 
+both the meanings, counts and the times (To be added) that word has been checked. 
 
 The  users dictionary is store on given file and loaded at startup, updated at exit.  
 
