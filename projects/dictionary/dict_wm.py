@@ -9,12 +9,11 @@ import pickle,gzip
 
 class Word_grabber:
     dict_web = 'https://www.merriam-webster.com/dictionary/'
-
     db_url = './dict_db.dict'
-
     dict_db = {}
+    hard_rank = 2 # The word that considered hard
 
-    def __init__(self, output_string):
+    def __init__(self, output_string=''):
         self.output_string = output_string
 
     def show_text(self, text):
@@ -48,14 +47,20 @@ class Word_grabber:
             print('url --' + url + ' is not there. \n')
             return {}
 
+    # filter and return the words that checked more than "hard" times            
+    def get_hard_words(self, hard = None) :
+        hard = hard if hard is not None else self.hard 
+        filtered_dict = {k:v for k,v in self.dict_db.items() if  
+            v['times'] > hard}
+        return filtered_dict
 
     def save_db(self, url=None):
         # set default value in class memthod
         url = url if url is not None else self.db_url 
         print('trying to save db to url --' + url + '\n')
         with gzip.open(url , 'wb') as f:
-            pickle.dump(self.dict_db, f, 0)
-            #pickle.dump(self.dict_db, f, pickle.HIGHEST_PROTOCOL)
+            #pickle.dump(self.dict_db, f, 0)
+            pickle.dump(self.dict_db, f, pickle.HIGHEST_PROTOCOL)
 
     def update_db(self,word_lookup):
         self.dict_db[word_lookup]['times'] += 1
