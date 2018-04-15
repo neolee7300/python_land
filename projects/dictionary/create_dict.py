@@ -6,7 +6,8 @@ from urllib.request import urlopen
 from importlib import reload
 # pickle save objects
 import pickle,gzip,json
-
+# read_english_dictionary is from the git repo 
+# https://github.com/dwyl/english-words.git
 import read_english_dictionary 
 import dict_wm 
 
