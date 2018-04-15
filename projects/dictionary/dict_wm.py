@@ -11,10 +11,11 @@ class Word_grabber:
     dict_web = 'https://www.merriam-webster.com/dictionary/'
     db_url = './dict_db.dict'
     dict_db = {}
-    hard_rank = 2 # The word that considered hard
+    hard = 2 # The word that considered hard
 
     def __init__(self, output_string=''):
         self.output_string = output_string
+        self.load_db()
 
     def show_text(self, text):
         text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines
@@ -68,6 +69,16 @@ class Word_grabber:
         print('"' + word_lookup + '" has been checked ' 
             + str(self.dict_db[word_lookup]['times']) + ' times')        
         print('******************************************\n')
+
+    def query(self,word_lookup):
+        if word_lookup in  self.dict_db :
+            print(self.dict_db[word_lookup]['contents'])
+            self.update_db(word_lookup)
+            self.save_db()
+        else:
+            self.grab_word_from_url(word_lookup)
+            self.save_db()
+            print(self.dict_db[word_lookup]['contents'])
 
     def grab_word_from_url(self,word_lookup):
         try:
@@ -125,14 +136,8 @@ def main():
         sys.exit(1)
 
     wg.load_db()
-    if word_lookup in  wg.dict_db :
-        print(wg.dict_db[word_lookup]['contents'])
-        wg.update_db(word_lookup)
-        wg.save_db()
-    else:
-        wg.grab_word_from_url(word_lookup)
-        wg.save_db()
-        print(wg.dict_db[word_lookup]['contents'])
+    wg.query(word_lookup)
+    
 
 if __name__ == '__main__':
     main()
