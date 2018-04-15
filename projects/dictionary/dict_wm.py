@@ -6,6 +6,8 @@ from urllib.request import urlopen
 from importlib import reload
 # pickle save objects
 import pickle,gzip
+import subprocess
+from shutil import copyfile
 
 class Word_grabber:
     dict_web = 'https://www.merriam-webster.com/dictionary/'
@@ -62,6 +64,7 @@ class Word_grabber:
         with gzip.open(url , 'wb') as f:
             #pickle.dump(self.dict_db, f, 0)
             pickle.dump(self.dict_db, f, pickle.HIGHEST_PROTOCOL)
+        copyfile(url, url+'.bak')
 
     def update_db(self,word_lookup):
         self.dict_db[word_lookup]['times'] += 1
@@ -76,9 +79,33 @@ class Word_grabber:
             self.update_db(word_lookup)
             self.save_db()
         else:
-            self.grab_word_from_url(word_lookup)
+            #self.grab_word_from_url(word_lookup)
+            self.lynx_word_from_url(word_lookup)
             self.save_db()
-            print(self.dict_db[word_lookup]['contents'])
+            #print(self.dict_db[word_lookup]['contents'])
+            print(self.dict_db[word_lookup]['contents'].decode())
+
+            
+    def lynx_word_from_url(self,word_lookup):
+        try:
+            url = self.dict_web + word_lookup
+            #print(commands.getstatusoutput("cat syscall_list.txt | grep f89e7000 | awk '{print $2}'"))       
+            cmd_str = 'lynx -dump -notitle -dont_wrap_pre -width=990 -nolist  ' + '"' + url  + '"'     
+  
+            self.output_string= subprocess.check_output(cmd_str, shell=True)
+            self.dict_db.update({word_lookup:{'contents':self.output_string,'times':0}})
+            self.update_db(word_lookup)
+            # clean the output_string for next word
+            self.output_string = ''
+            return 'found'    
+        except AttributeError:
+            print( "word can not be found")
+            return 'not found'
+            #sys.exit(2)
+    
+        except TypeError:
+            print ("NA")
+            return 'wrong type'                    
 
     def grab_word_from_url(self,word_lookup):
         try:

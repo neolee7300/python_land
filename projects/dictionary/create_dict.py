@@ -32,26 +32,20 @@ def create_new_words(english_words):
 
 if __name__ == '__main__':
     english_words = read_english_dictionary.load_words()
-    # demo print
-    # for idx,obj in enumerate(english_words) :
-    #    print ( str(idx) + 'th obj is ' + obj )
-    # create_new_words(english_words)
-
     wg = dict_wm.Word_grabber('')
 
     new_words=wg.load_db('./new_words.dict')
     wrong_words=wg.load_db('./wrong_words.dict')
     wg.dict_db = wg.load_db('./dict_db.dict')    
-
-    print('there are ' + str(len(new_words)) + ' words' )
+    
     while new_words :
-        for x in range(1, 200) :
+        for x in range(1, 500) :
             word = new_words.popitem()[0]
             print('checking ' + word + '  ' +str(len(new_words)) + ' words left')
             print('left %d , right %d, wrong %d' % (len(new_words), len(wg.dict_db), len(wrong_words)))                         
             #sleep(random.randint(1,2))
             try:
-                result = wg.grab_word_from_url(word)
+                result = wg.lynx_word_from_url(word)
                 #print('checked ' + word + '  ' +str(len(new_words)) + ' words left')
             except:
                 wrong_words.update({word:{'contents':'','times':-1}})
