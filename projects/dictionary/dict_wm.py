@@ -7,7 +7,6 @@ from importlib import reload
 # pickle save objects
 import pickle,gzip
 import subprocess
-from shutil import copyfile
 
 class Word_grabber:
     dict_web = 'https://www.merriam-webster.com/dictionary/'
@@ -60,11 +59,19 @@ class Word_grabber:
     def save_db(self, url=None):
         # set default value in class memthod
         url = url if url is not None else self.db_url 
-        print('trying to save db to url --' + url + '\n')
+        print('Saving db to url --' + url + '\n')
         with gzip.open(url , 'wb') as f:
             #pickle.dump(self.dict_db, f, 0)
             pickle.dump(self.dict_db, f, pickle.HIGHEST_PROTOCOL)
-        copyfile(url, url+'.bak')
+
+    def backup_db(self, url=None):
+        # set default value in class memthod
+        url = url if url is not None else self.db_url 
+        url = '.' + url + '.bak'
+
+        print('Backup db to url --' + url + '\n')
+        self.save_db(url) 
+        subprocess.call(['chmod', '0444', url])
 
     def update_db(self,word_lookup):
         self.dict_db[word_lookup]['times'] += 1
@@ -72,6 +79,10 @@ class Word_grabber:
         print('"' + word_lookup + '" has been checked ' 
             + str(self.dict_db[word_lookup]['times']) + ' times')        
         print('******************************************\n')
+
+    def reset_db_counts(self):
+        for k, v in self.dict_db.items() :
+            self.dict_db[k]['times'] = 0
 
     def query(self,word_lookup):
         if word_lookup in  self.dict_db :
@@ -84,7 +95,6 @@ class Word_grabber:
             self.save_db()
             #print(self.dict_db[word_lookup]['contents'])
             print(self.dict_db[word_lookup]['contents'].decode())
-
             
     def lynx_word_from_url(self,word_lookup):
         try:
