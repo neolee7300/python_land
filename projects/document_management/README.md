@@ -1,7 +1,7 @@
-#Goals:   A toolset to  keep, organize, backup important files
+# Goals:   A toolset to  keep, organize, backup important files
 
 
-##Workflow:     Once you get a important file 
+## Workflow:     Once you get a important file 
 
 1. You put it (im_file) into a raw_files directory
 1. The file will be hashed, the tool will check whether the file is in database according to hash number. 
