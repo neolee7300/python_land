@@ -1,5 +1,10 @@
-A python program that grab words' explanation from online dictionaries. 
+== A python program that grab words' explanation from online dictionaries. 
 
+# ToDo
+  1.  current wrapper for dict is ugly.  I just want a dict with extra methods.  I want wm_db[key] instead of wm_db.dict_db[key]
+  1.  current dict_db.dict file is huge (1xxM) , Need better way to handle it. 
+
+# Goal
 The results were stored in a single large dict variable. The key is the word, the value is a class that stores 
 both the meanings, counts and the times (To be added) that word has been checked. 
 
