@@ -8,33 +8,15 @@ from importlib import reload
 import pickle,gzip
 import subprocess
 
-class Word_grabber:
-    dict_web = 'https://www.merriam-webster.com/dictionary/'
-    db_url = './dict_db.dict'
-    dict_db = {}
+
+class wm_db(dict) :
+
     hard = 2 # The word that considered hard
 
-    def __init__(self, output_string=''):
-        self.output_string = output_string
+    def __init__(self, url=None):
+        self.db_url = url if url is not None else '.'  
+        self.dict_db = {}
         self.load_db()
-
-    def show_text(self, text):
-        text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines
-        text = re.sub('   *','\n\t',text) # replace continus space to  new line with a tab
-        text = re.sub('\n:',':',text)    # If a line start with : , join the previouse line
-        text = re.sub('\narchaic','  archaic',text) 
-        
-        text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines        
-        #text = " ".join([s for s in text.splitlines() if s])   # join lines
-        #text = " ".join(text.split()) # remove multiple spaces 
-        self.output_string += (text +'\n') 
-        #print(text)
-
-    def show_objs(self, objs):
-        for idx,obj in enumerate(objs) :
-            if not obj.find('script') :
-                #self.show_text('Showing obj '+ str(idx) + '....... \n')
-                self.show_text(obj.text)
 
     def load_db(self,url = None):
         url = url if url is not None else self.db_url 
@@ -43,11 +25,11 @@ class Word_grabber:
         if os.path.isfile(url): 
             with gzip.open(url, 'rb') as f:
                 self.dict_db = pickle.load(f)
-                #return pickle.load(f)
             return self.dict_db
         else:
             print('url --' + url + ' is not there. \n')
-            return {}
+            self.dict_db = {}
+            return self.dict_db
 
     # filter and return the words that checked more than "hard" times            
     def get_hard_words(self, hard = None) :
@@ -84,27 +66,82 @@ class Word_grabber:
         for k, v in self.dict_db.items() :
             self.dict_db[k]['times'] = 0
 
+class Word_grabber:
+
+    dict_web = 'https://www.merriam-webster.com/dictionary/'
+    dict_db_url = './dict_db.dict'
+    user_db_url = './user_db.dict'
+
+    def __init__(self, output_string=''):
+        self.output_string = output_string
+
+        self.dict_db = wm_db(self.dict_db_url)
+        self.user_db = wm_db(self.user_db_url)
+
+    def show_text(self, text):
+        text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines
+        text = re.sub('   *','\n\t',text) # replace continus space to  new line with a tab
+        text = re.sub('\n:',':',text)    # If a line start with : , join the previouse line
+        text = re.sub('\narchaic','  archaic',text) 
+        
+        text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines        
+        #text = " ".join([s for s in text.splitlines() if s])   # join lines
+        #text = " ".join(text.split()) # remove multiple spaces 
+        self.output_string += (text +'\n') 
+        #print(text)
+
+    def show_objs(self, objs):
+        for idx,obj in enumerate(objs) :
+            if not obj.find('script') :
+                #self.show_text('Showing obj '+ str(idx) + '....... \n')
+                self.show_text(obj.text)
+
+    def process_lynx_text(self, text):
+       # text = self.dict_db[word_lookup]['contents'].decode()
+        text = text.split('These example sentences are selected automatically')[0] # remove everything after  
+        text = text.split('There\'s more!')[0] # remove everything after  
+        text = text.split('Learn More about')[0] # remove everything after  
+        text = text.split('Follow:')[1:] # remove everything before 
+        text = "".join(text)
+        return text
+
     def query(self,word_lookup):
-        if word_lookup in  self.dict_db :
-            print(self.dict_db[word_lookup]['contents'])
-            self.update_db(word_lookup)
-            self.save_db()
+        if word_lookup in self.dict_db.dict_db :
+            text = self.dict_db.dict_db[word_lookup]['contents'].decode()
+            #text = process_lynx_text(word_lookup)
+            if word_lookup not in self.user_db.dict_db :
+                self.user_db.dict_db.update({word_lookup:{'contents':text.encode(),'times':0}})
+            self.dict_db.dict_db[word_lookup]['contents'] = text.encode()
+            print(text)
+            # seperated dict_db (huge) and user_db (frequent I/O)
+            self.user_db.update_db(word_lookup)
+            self.user_db.save_db()
         else:
             #self.grab_word_from_url(word_lookup)
             self.lynx_word_from_url(word_lookup)
-            self.save_db()
+
+            self.dict_db.update_db(word_lookup)
+            self.dict_db.save_db()
+
+            self.user_db.update_db(word_lookup)
+            self.user_db.save_db()
             #print(self.dict_db[word_lookup]['contents'])
-            print(self.dict_db[word_lookup]['contents'].decode())
+            print(self.dict_db.dict_db[word_lookup]['contents'].decode())
             
     def lynx_word_from_url(self,word_lookup):
         try:
             url = self.dict_web + word_lookup
             #print(commands.getstatusoutput("cat syscall_list.txt | grep f89e7000 | awk '{print $2}'"))       
             cmd_str = 'lynx -dump -notitle -dont_wrap_pre -width=990 -nolist  ' + '"' + url  + '"'     
-  
-            self.output_string= subprocess.check_output(cmd_str, shell=True)
-            self.dict_db.update({word_lookup:{'contents':self.output_string,'times':0}})
-            self.update_db(word_lookup)
+            self.output_string = subprocess.check_output(cmd_str, shell=True)
+            text = self.process_lynx_text(self.output_string)
+
+            print(wood_lookup + ' in dict_db now \n')
+            self.dict_db.dict_db.update({word_lookup:{'contents':text.encode(), 'times':0}})
+            print(wood_lookup + ' in dict_db now \n')
+            self.user_db.dict_db.update({word_lookup:{'contents':text.encode(), 'times':0}})
+            print(wood_lookup + ' in user_db now \n')
+
             # clean the output_string for next word
             self.output_string = ''
             return 'found'    
@@ -144,10 +181,10 @@ class Word_grabber:
             self.show_objs(objs)
 
             print(' \nTrying to add word into db')
-            self.dict_db.update({word_lookup:{'contents':self.output_string,'times':0}})
-            print(' Word is in db')
-    
-            self.update_db(word_lookup)
+            self.dict_db.update({word_lookup:{'contents':self.output_string.encode(),'times':0}})
+            print(' Word is in db' + self.dict_db.url)
+            self.user_db.update({word_lookup:{'contents':self.output_string,'times':0}})
+            print(' Word is in db' + self.user_db.url)
             # clean the output_string for next word
             self.output_string = ''
             return 'found'
@@ -172,7 +209,6 @@ def main():
         print ('What do you want to look up?')
         sys.exit(1)
 
-    wg.load_db()
     wg.query(word_lookup)
     
 
