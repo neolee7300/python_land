@@ -134,13 +134,10 @@ class Word_grabber:
             #print(commands.getstatusoutput("cat syscall_list.txt | grep f89e7000 | awk '{print $2}'"))       
             cmd_str = 'lynx -dump -notitle -dont_wrap_pre -width=990 -nolist  ' + '"' + url  + '"'     
             self.output_string = subprocess.check_output(cmd_str, shell=True)
-            text = self.process_lynx_text(self.output_string)
+            text = self.process_lynx_text(self.output_string.decode())
 
-            print(wood_lookup + ' in dict_db now \n')
             self.dict_db.dict_db.update({word_lookup:{'contents':text.encode(), 'times':0}})
-            print(wood_lookup + ' in dict_db now \n')
             self.user_db.dict_db.update({word_lookup:{'contents':text.encode(), 'times':0}})
-            print(wood_lookup + ' in user_db now \n')
 
             # clean the output_string for next word
             self.output_string = ''
