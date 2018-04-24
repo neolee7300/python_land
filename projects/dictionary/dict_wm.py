@@ -28,13 +28,12 @@ class wm_db(dict) :
                 self.update(pickle.load(f))
         else:
             print('url --' + url + ' is not there. \n')
-            self.updatei( {} )
+            self.update( {} )
 
     # filter and return the words that checked more than "hard" times            
     def get_hard_words(self, hard = None) :
         hard = hard if hard is not None else self.hard 
-        filtered_dict = {k:v for k,v in self.items() if  
-            v['times'] > hard}
+        filtered_dict = {k:v for k,v in self.items() if v['times'] > hard}
         return filtered_dict
 
     def save_db(self, url=None):
@@ -43,7 +42,7 @@ class wm_db(dict) :
         print('Saving db to url --' + url + '\n')
         with gzip.open(url , 'wb') as f:
             #pickle.dump(self.dict_db, f, 0)
-            pickle.dump({}.update(self), f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump(dict(self), f, pickle.HIGHEST_PROTOCOL)
 
     def backup_db(self, url=None):
         # set default value in class memthod
