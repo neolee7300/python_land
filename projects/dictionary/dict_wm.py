@@ -11,7 +11,7 @@ import subprocess
 
 class wm_db(dict) :
 
-    hard = 2 # The word that considered hard
+    hard = 2 # The count that considered hard
 
     def __init__(self, url=None):
         dict.__init__(self)
@@ -83,19 +83,14 @@ class Word_grabber:
         text = re.sub('\narchaic','  archaic',text) 
         
         text = os.linesep.join([s for s in text.splitlines() if s])   # remove empty lines        
-        #text = " ".join([s for s in text.splitlines() if s])   # join lines
-        #text = " ".join(text.split()) # remove multiple spaces 
         self.output_string += (text +'\n') 
-        #print(text)
 
     def show_objs(self, objs):
         for idx,obj in enumerate(objs) :
             if not obj.find('script') :
-                #self.show_text('Showing obj '+ str(idx) + '....... \n')
                 self.show_text(obj.text)
 
     def process_lynx_text(self, text):
-       # text = self.dict_db[word_lookup]['contents'].decode()
         text = text.split('These example sentences are selected automatically')[0] # remove everything after  
         text = text.split('There\'s more!')[0] # remove everything after  
         text = text.split('Learn More about')[0] # remove everything after  
