@@ -14,8 +14,9 @@ class wm_db(dict) :
     hard = 2 # The word that considered hard
 
     def __init__(self, url=None):
+        dict.__init__(self)
         self.db_url = url if url is not None else '.'  
-        self.dict_db = {}
+
         self.load_db()
 
     def load_db(self,url = None):
@@ -24,17 +25,15 @@ class wm_db(dict) :
         print('trying to get db from url --' + url + '\n')
         if os.path.isfile(url): 
             with gzip.open(url, 'rb') as f:
-                self.dict_db = pickle.load(f)
-            return self.dict_db
+                self.update(pickle.load(f))
         else:
             print('url --' + url + ' is not there. \n')
-            self.dict_db = {}
-            return self.dict_db
+            self.updatei( {} )
 
     # filter and return the words that checked more than "hard" times            
     def get_hard_words(self, hard = None) :
         hard = hard if hard is not None else self.hard 
-        filtered_dict = {k:v for k,v in self.dict_db.items() if  
+        filtered_dict = {k:v for k,v in self.items() if  
             v['times'] > hard}
         return filtered_dict
 
@@ -44,7 +43,7 @@ class wm_db(dict) :
         print('Saving db to url --' + url + '\n')
         with gzip.open(url , 'wb') as f:
             #pickle.dump(self.dict_db, f, 0)
-            pickle.dump(self.dict_db, f, pickle.HIGHEST_PROTOCOL)
+            pickle.dump({}.update(self), f, pickle.HIGHEST_PROTOCOL)
 
     def backup_db(self, url=None):
         # set default value in class memthod
@@ -56,15 +55,15 @@ class wm_db(dict) :
         subprocess.call(['chmod', '0444', url])
 
     def update_db(self,word_lookup):
-        self.dict_db[word_lookup]['times'] += 1
+        self[word_lookup]['times'] += 1
         print('\n******************************************')  
         print('"' + word_lookup + '" has been checked ' 
-            + str(self.dict_db[word_lookup]['times']) + ' times')        
+            + str(self[word_lookup]['times']) + ' times')        
         print('******************************************\n')
 
     def reset_db_counts(self):
-        for k, v in self.dict_db.items() :
-            self.dict_db[k]['times'] = 0
+        for k, v in self.items() :
+            self[k]['times'] = 0
 
 class Word_grabber:
 
@@ -106,12 +105,12 @@ class Word_grabber:
         return text
 
     def query(self,word_lookup):
-        if word_lookup in self.dict_db.dict_db :
-            text = self.dict_db.dict_db[word_lookup]['contents'].decode()
+        if word_lookup in self.dict_db:
+            text = self.dict_db[word_lookup]['contents'].decode()
             #text = process_lynx_text(word_lookup)
-            if word_lookup not in self.user_db.dict_db :
-                self.user_db.dict_db.update({word_lookup:{'contents':text.encode(),'times':0}})
-            self.dict_db.dict_db[word_lookup]['contents'] = text.encode()
+            if word_lookup not in self.user_db:
+                self.user_db.update({word_lookup:{'contents':text.encode(),'times':0}})
+            self.dict_db[word_lookup]['contents'] = text.encode()
             print(text)
             # seperated dict_db (huge) and user_db (frequent I/O)
             self.user_db.update_db(word_lookup)
@@ -126,7 +125,7 @@ class Word_grabber:
             self.user_db.update_db(word_lookup)
             self.user_db.save_db()
             #print(self.dict_db[word_lookup]['contents'])
-            print(self.dict_db.dict_db[word_lookup]['contents'].decode())
+            print(self.dict_db[word_lookup]['contents'].decode())
             
     def lynx_word_from_url(self,word_lookup):
         try:
@@ -136,8 +135,8 @@ class Word_grabber:
             self.output_string = subprocess.check_output(cmd_str, shell=True)
             text = self.process_lynx_text(self.output_string.decode())
 
-            self.dict_db.dict_db.update({word_lookup:{'contents':text.encode(), 'times':0}})
-            self.user_db.dict_db.update({word_lookup:{'contents':text.encode(), 'times':0}})
+            self.dict_db.update({word_lookup:{'contents':text.encode(), 'times':0}})
+            self.user_db.update({word_lookup:{'contents':text.encode(), 'times':0}})
 
             # clean the output_string for next word
             self.output_string = ''
