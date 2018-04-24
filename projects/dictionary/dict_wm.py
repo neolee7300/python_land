@@ -54,7 +54,7 @@ class wm_db(dict) :
         self.save_db(url) 
         subprocess.call(['chmod', '0444', url])
 
-    def update_db(self,word_lookup):
+    def update_counts(self,word_lookup):
         self[word_lookup]['times'] += 1
         print('\n******************************************')  
         print('"' + word_lookup + '" has been checked ' 
@@ -113,16 +113,16 @@ class Word_grabber:
             self.dict_db[word_lookup]['contents'] = text.encode()
             print(text)
             # seperated dict_db (huge) and user_db (frequent I/O)
-            self.user_db.update_db(word_lookup)
+            self.user_db.update_counts(word_lookup)
             self.user_db.save_db()
         else:
             #self.grab_word_from_url(word_lookup)
             self.lynx_word_from_url(word_lookup)
 
-            self.dict_db.update_db(word_lookup)
+            self.dict_db.update_counts(word_lookup)
             self.dict_db.save_db()
 
-            self.user_db.update_db(word_lookup)
+            self.user_db.update_counts(word_lookup)
             self.user_db.save_db()
             #print(self.dict_db[word_lookup]['contents'])
             print(self.dict_db[word_lookup]['contents'].decode())
