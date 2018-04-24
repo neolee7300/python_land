@@ -1,11 +1,11 @@
-== A python program that generates random cube layout and solve it with AI  
+# A program generates cube layout and AI solve it 
 
-# Convert an operator rules to a table function  
+## Convert operator rules to a table function  
 I am going to need vector cross operation in this program. Instead of copy 
 all the code of cross operator, I am going to generate it from a operator 
 generator. 
 
-## operator generator (op_generator) 
+### operator generator (op_generator) 
 
   1. op_generator takes rules of an operator
   1. op_generator applies rules on input parameters until getting result
@@ -15,7 +15,8 @@ generator.
   1. op_generator compiles the input as dict key , results as the value   
   1. op_generator returns the dictionary as an operator function 
 
-## Rules of cross operator
+### Rules of cross operator
+
   1. i x j = k  
   1. i x i = 0 
   1. i x k = -j
