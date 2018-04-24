@@ -16,10 +16,10 @@ generator.
   1. op_generator returns the dictionary as an operator function 
 
 ## Rules of cross operator
-  2. i x j = k  
-  2. i x i = 0 
-  2. i x k = -j
-  2. i j k are rotating invariant 
+  1. i x j = k  
+  1. i x i = 0 
+  1. i x k = -j
+  1. i j k are rotating invariant 
 
 
 ## ToDo
