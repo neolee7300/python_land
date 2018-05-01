@@ -79,6 +79,12 @@ class rubik3 :
         return self.rubiks.update({(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
                       self.rubiks.items() if k[0] == 1})
 
+class op_generator:
+
+    idx_to_ijk = { 0: 'i' , 1: 'j',  2: 'k'} 
+    ijk_to_vec = {'i': [1,0,0],  'j': [0,1,0],  'k': [0,0,1]} 
+    vec_to_ijk = { (1,0,0):'i' ,   (0,1,0):'j', (0,0,1):'k'} 
+
     def vec_plus (self, a, b) :
         return list(map(lambda x, y: x+y, a, b))
 
@@ -92,12 +98,6 @@ class rubik3 :
             input = (self.opg.idx_to_ijk[x] , self.opg.idx_to_ijk[y])
             result = self.vec_plus(result, self.vec_scale(scale, self.ijk_cross[input]))
         return result
-
-class op_generator:
-
-    idx_to_ijk = { 0: 'i' , 1: 'j',  2: 'k'} 
-    ijk_to_vec = {'i': [1,0,0],  'j': [0,1,0],  'k': [0,0,1]} 
-    vec_to_ijk = { (1,0,0):'i' ,   (0,1,0):'j', (0,0,1):'k'} 
 
     def rotate_input(self, input, n):
         result = ()
