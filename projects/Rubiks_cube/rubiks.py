@@ -15,10 +15,22 @@ class rubik3 :
         b = np.array([0,1,0])  
         acb = np.cross(a,b)
 
-        print(self.coods)
+        # position in cubic - xyz faces
         self.coods = tuple(product([-1, 0, 1],[-1, 0, 1],[-1, 0, 1])) 
-        self.faces = tuple(product([-1, 1],[0, 1, 2 ])) 
-        self.moves= tuple(product([-1, 1],[0, 1, 2 ],[0,1,2])) 
+        self.coods_xyz = tuple(product(self.coods, [0,1,2])) 
+
+        # xyz faces - position in face
+        self.faces = tuple(product([-1, 1],[0, 1, 2 ])) # (pos-neg , xyz )
+        self.1yz_cood = tuple(product([-1, 0, 1],[-1, 0, 1])) 
+        self.faces_yz = tuple(product(self.faces, self.1yz_cood)) 
+    
+        self.moves= tuple(product([-1, 1],[0, 1, 2 ],[90,180,270])) 
+        
+        # the operator we want is a mapping of 
+        # face_yz + moves -> face_yz_new 
+        # rubic_new[face_yz] = operator= dict{(face_yz_new, move) : face_yz_old}
+
+        self.phase = tuple(product([-1, 0, 1],[-1, 0, 1],[-1, 0, 1])) 
         self.opg = op_generator()
         self.ijk_cross = self.opg.ijk_cross_rules()
         self.rubiks = {cood: ('r','g','b') for cood in self.coods }
@@ -33,10 +45,11 @@ class rubik3 :
 
     # This is not the most efficient way to twist a face. But it is how we
     # think in brain. The efficiency should be left for compiler to consider
+    # move = ( pos or nag ,  xyz ,  angle/90 ) 
     def rubiks_move(self, move):
         face =(move[0],move[1])
         self.pick_faces(face)
-        for times in range(move[2]):
+        for times in range(int(move[2]/90)):
             self.rotate_1yz_90()
         self.unpick_faces(face)
 
