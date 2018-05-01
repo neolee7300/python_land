@@ -18,7 +18,7 @@ class rubik3 :
         print(self.coods)
         self.coods = tuple(product([-1, 0, 1],[-1, 0, 1],[-1, 0, 1])) 
         self.faces = tuple(product([-1, 1],[0, 1, 2 ])) 
-
+        self.moves= tuple(product([-1, 1],[0, 1, 2 ],[0,1,2])) 
         self.opg = op_generator()
         self.ijk_cross = self.opg.ijk_cross_rules()
         self.rubiks = {cood: ('r','g','b') for cood in self.coods }
@@ -30,6 +30,15 @@ class rubik3 :
             self.pick_faces(face)
             self.paint_rubiks() 
             self.unpick_faces(face)
+
+    # This is not the most efficient way to twist a face. But it is how we
+    # think in brain. The efficiency should be left for compiler to consider
+    def rubiks_move(self, move):
+        face =(move[0],move[1])
+        self.pick_faces(face)
+        for times in range(move[2]):
+            self.rotate_1yz_90()
+        self.unpick_faces(face)
 
     def pick_faces(self,face =(1 , 0)):
         self.rotate_xyz_rubiks(face[1]) 
@@ -64,8 +73,11 @@ class rubik3 :
             self.show_faces(face) 
 
     def rotate_1yz_90(self):
+        fa = {(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
+              self.rubiks.items() if k[0] == 1}
+        print(fa)
         return self.rubiks.update({(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
-                      self.rubiks if k[0] == 1})
+                      self.rubiks.items() if k[0] == 1})
 
     # Stacking two functions gives you results but not a new simplified function
     # Can functinal programming do it?  Maybe for this case. But I doubt it can
