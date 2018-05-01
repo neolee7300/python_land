@@ -32,14 +32,14 @@ class rubik3 :
             self.unpick_faces(face)
 
     def pick_faces(self,face =(1 , 0)):
+        self.rotate_xyz_rubiks(face[1]) 
         if face[0] == -1: 
             self.flip_rubiks() 
-        self.rotate_xyz_rubiks(face[1]) 
 
     def unpick_faces(self,face =(1 , 0)):
-        self.rotate_xyz_rubiks(3 - face[1] ) 
         if face[0] == -1:
             self.flip_rubiks() 
+        self.rotate_xyz_rubiks(3 - face[1] ) 
 
     def flip_rubiks (self):
         self.rubiks = { (-k[0],) + k[1:] : v for k,v in self.rubiks.items()}
@@ -53,6 +53,7 @@ class rubik3 :
         self.rubiks.update({k :((co,) + v[1:]) for k,v in self.rubiks.items() if k[0] == 1})
 
     def show_faces(self,face):
+        print(face)
         self.pick_faces(face)
         for z in [-1, 0, 1] : 
             print( self.rubiks[(1,-1,z)][0], self.rubiks[(1,0,z)][0], self.rubiks[(1,1,z)][0]) 
