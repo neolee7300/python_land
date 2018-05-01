@@ -17,6 +17,7 @@ class rubik3 :
 
         print(self.coods)
         self.coods = product([-1, 0, 1],[-1, 0, 1],[-1, 0, 1]) 
+        self.faces = product
         self.opg = op_generator()
         self.ijk_cross = self.opg.ijk_cross_rules()
         self.rubiks = {cood: ('r','g','b') for cood in self.coods }
@@ -30,6 +31,8 @@ class rubik3 :
             self.flip_rubiks() 
             self.paint_rubiks() 
 
+
+
     def flip_rubiks (self):
         self.rubiks = { (-k[0],) + k[1:] : v for k,v in self.rubiks.items()}
 
@@ -38,8 +41,25 @@ class rubik3 :
 
     def paint_rubiks (self):
         co = next(self.color)
-        print(co)
-        self.rubiks.update( { k :((co,) + v[1:]) for k,v in self.rubiks.items() if k[0] == 1})
+        self.rubiks.update({k :((co,) + v[1:]) for k,v in self.rubiks.items() if k[0] == 1})
+
+    def rotate_1yz_90(self):
+        return self.rubiks.update{(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
+                      self.rubiks if k[0] == 1}
+
+    # Stacking two functions gives you results but not a new simplified function
+    # Can functinal programming do it?  Maybe for this case. But I doubt it can
+    # for general cases
+    def rotate_1yz_180(self): 
+        self.rotate_1yz_90()
+        self.rotate_1yz_90()
+
+    def rotate_1yz_270(self):
+        self.rotate_1yz_180()
+        self.rotate_1yz_90()
+
+    def rotate_rubiks(self, coods):
+        return coods    
 
     def vec_plus (self, a, b) :
         return list(map(lambda x, y: x+y, a, b))
@@ -54,16 +74,6 @@ class rubik3 :
             input = (self.opg.idx_to_ijk[x] , self.opg.idx_to_ijk[y])
             result = self.vec_plus(result, self.vec_scale(scale, self.ijk_cross[input]))
         return result
-
-    def rotate_1yz_90(self, coods):
-        for cood in coods :
-            if cood[0] == 1 :
-                cood_r = ((cood[0],) + (- cood[2], cood[1]))
-        return(cood_r)
-
-
-    def rotate_rubiks(self, coods):
-        return coods    
 
 class op_generator:
 
