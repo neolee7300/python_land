@@ -34,20 +34,18 @@ class rubik3 :
     def pick_faces(self,face =(1 , 0)):
         if face[0] == -1: 
             self.flip_rubiks() 
-        for times in range(face[1]): 
-            self.rotate_xyz_rubiks() 
+        self.rotate_xyz_rubiks(face[1]) 
 
     def unpick_faces(self,face =(1 , 0)):
-        for times in range(3 - face[1]):
-            self.rotate_xyz_rubiks() 
+        self.rotate_xyz_rubiks(3 - face[1] ) 
         if face[0] == -1:
             self.flip_rubiks() 
 
     def flip_rubiks (self):
         self.rubiks = { (-k[0],) + k[1:] : v for k,v in self.rubiks.items()}
 
-    def rotate_xyz_rubiks (self):
-        self.rubiks = { self.opg.cshift_list(k,1) : self.opg.cshift_list(v,1) for k,v in self.rubiks.items()}
+    def rotate_xyz_rubiks (self, n):
+        self.rubiks = { self.opg.cshift_list(k,n) : self.opg.cshift_list(v,n) for k,v in self.rubiks.items()}
 
     def paint_rubiks (self):
         co = next(self.color)
