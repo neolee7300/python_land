@@ -16,9 +16,9 @@ class rubik3 :
         acb = np.cross(a,b)
 
         print(self.coods)
-        self.coods = product([-1, 0, 1],[-1, 0, 1],[-1, 0, 1]) 
-        self.faces=  product([-1, 1],[0, 1, 2 ]) 
-        self.face1=  product([1],[-1,0, 1],[-1,0, 1]) 
+        self.coods = tuple(product([-1, 0, 1],[-1, 0, 1],[-1, 0, 1])) 
+        self.faces = tuple(product([-1, 1],[0, 1, 2 ])) 
+
         self.opg = op_generator()
         self.ijk_cross = self.opg.ijk_cross_rules()
         self.rubiks = {cood: ('r','g','b') for cood in self.coods }
@@ -26,40 +26,47 @@ class rubik3 :
         print(self.rubiks)
     
     def init_rubiks (self) :
-        for i in range(0,3) :
-            self.rotate_xyz_rubiks()
+        for face in self.faces:
+            self.pick_faces(face)
             self.paint_rubiks() 
+            self.unpick_faces(face)
+
+    def pick_faces(self,face =(1 , 0)):
+        if face[0] == -1: 
             self.flip_rubiks() 
-            self.paint_rubiks() 
+        for times in range(face[1]): 
+            self.rotate_xyz_rubiks() 
 
-    def pick_faces(self,face =(1 , 0) )
-        flip_rubiks() if face[0] == -1
-        rotate_xyz_rubiks() for times in range(face[1]) 
-
-    def unpick_faces(self,face =(1 , 0) )
-        flip_rubiks() if face[0] == -1
-        rotate_xyz_rubiks() for times in range(face[1]) 
+    def unpick_faces(self,face =(1 , 0)):
+        for times in range(3 - face[1]):
+            self.rotate_xyz_rubiks() 
+        if face[0] == -1:
+            self.flip_rubiks() 
 
     def flip_rubiks (self):
         self.rubiks = { (-k[0],) + k[1:] : v for k,v in self.rubiks.items()}
 
     def rotate_xyz_rubiks (self):
-        self.rubiks = { self.opg.cshift_list(k,1) : v for k,v in self.rubiks.items()}
+        self.rubiks = { self.opg.cshift_list(k,1) : self.opg.cshift_list(v,1) for k,v in self.rubiks.items()}
 
     def paint_rubiks (self):
         co = next(self.color)
+        print(co)
         self.rubiks.update({k :((co,) + v[1:]) for k,v in self.rubiks.items() if k[0] == 1})
 
     def show_faces(self,face):
+        self.pick_faces(face)
         for z in [-1, 0, 1] : 
             print( self.rubiks[(1,-1,z)][0], self.rubiks[(1,0,z)][0], self.rubiks[(1,1,z)][0]) 
+        self.unpick_faces(face)
 
     def show_rubiks(self):
-        show_faces(face) for face in self.faces
+        for face in self.faces:
+            self.show_faces(face) 
 
     def rotate_1yz_90(self):
-        return self.rubiks.update{(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
-                      self.rubiks if k[0] == 1}
+        return self.rubiks.update({(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
+                      self.rubiks if k[0] == 1})
 
     # Stacking two functions gives you results but not a new simplified function
     # Can functinal programming do it?  Maybe for this case. But I doubt it can
