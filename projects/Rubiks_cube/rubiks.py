@@ -17,7 +17,8 @@ class rubik3 :
 
         print(self.coods)
         self.coods = product([-1, 0, 1],[-1, 0, 1],[-1, 0, 1]) 
-        self.faces = product
+        self.faces=  product([-1, 1],[0, 1, 2 ]) 
+        self.face1=  product([1],[-1,0, 1],[-1,0, 1]) 
         self.opg = op_generator()
         self.ijk_cross = self.opg.ijk_cross_rules()
         self.rubiks = {cood: ('r','g','b') for cood in self.coods }
@@ -31,7 +32,13 @@ class rubik3 :
             self.flip_rubiks() 
             self.paint_rubiks() 
 
+    def pick_faces(self,face =(1 , 0) )
+        flip_rubiks() if face[0] == -1
+        rotate_xyz_rubiks() for times in range(face[1]) 
 
+    def unpick_faces(self,face =(1 , 0) )
+        flip_rubiks() if face[0] == -1
+        rotate_xyz_rubiks() for times in range(face[1]) 
 
     def flip_rubiks (self):
         self.rubiks = { (-k[0],) + k[1:] : v for k,v in self.rubiks.items()}
@@ -42,6 +49,13 @@ class rubik3 :
     def paint_rubiks (self):
         co = next(self.color)
         self.rubiks.update({k :((co,) + v[1:]) for k,v in self.rubiks.items() if k[0] == 1})
+
+    def show_faces(self,face):
+        for z in [-1, 0, 1] : 
+            print( self.rubiks[(1,-1,z)][0], self.rubiks[(1,0,z)][0], self.rubiks[(1,1,z)][0]) 
+
+    def show_rubiks(self):
+        show_faces(face) for face in self.faces
 
     def rotate_1yz_90(self):
         return self.rubiks.update{(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
