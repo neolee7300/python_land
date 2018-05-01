@@ -79,20 +79,6 @@ class rubik3 :
         return self.rubiks.update({(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
                       self.rubiks.items() if k[0] == 1})
 
-    # Stacking two functions gives you results but not a new simplified function
-    # Can functinal programming do it?  Maybe for this case. But I doubt it can
-    # for general cases
-    def rotate_1yz_180(self): 
-        self.rotate_1yz_90()
-        self.rotate_1yz_90()
-
-    def rotate_1yz_270(self):
-        self.rotate_1yz_180()
-        self.rotate_1yz_90()
-
-    def rotate_rubiks(self, coods):
-        return coods    
-
     def vec_plus (self, a, b) :
         return list(map(lambda x, y: x+y, a, b))
 
