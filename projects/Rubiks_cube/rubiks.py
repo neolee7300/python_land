@@ -8,8 +8,8 @@ import numpy as np
 from itertools import * 
 
 class rubik3 :
-    coods = ()
     color = cycle( ('r','g','b','w','y','p') )
+
     def __init__(self) :
         a = np.array([1,0,0])  
         b = np.array([0,1,0])  
@@ -21,20 +21,20 @@ class rubik3 :
 
         # xyz faces - position in face
         self.faces = tuple(product([-1, 1],[0, 1, 2 ])) # (pos-neg , xyz )
-        self.1yz_cood = tuple(product([-1, 0, 1],[-1, 0, 1])) 
-        self.faces_yz = tuple(product(self.faces, self.1yz_cood)) 
+        self.yz_cood = tuple(product([-1, 0, 1],[-1, 0, 1])) 
+        self.faces_yz = tuple(product(self.faces, self.yz_cood)) 
     
         self.moves= tuple(product([-1, 1],[0, 1, 2 ],[90,180,270])) 
-        
+        self.rubiks=tuple(product([-1, 1],[0, 1, 2 ],[90,180,270])) 
+
         # the operator we want is a mapping of 
         # face_yz + moves -> face_yz_new 
         # rubic_new[face_yz] = operator= dict{(face_yz_new, move) : face_yz_old}
 
-        self.phase = tuple(product([-1, 0, 1],[-1, 0, 1],[-1, 0, 1])) 
         self.opg = op_generator()
-        self.ijk_cross = self.opg.ijk_cross_rules()
-        self.rubiks = {cood: ('r','g','b') for cood in self.coods }
+        self.create_mapping()
         self.init_rubiks()
+        self.rubiks_to_status()
         print(self.rubiks)
     
     def init_rubiks (self) :
@@ -43,9 +43,32 @@ class rubik3 :
             self.paint_rubiks() 
             self.unpick_faces(face)
 
+    def rubiks_to_status (self) :
+        self.status = tuple(self.rubiks[cood][xyz]  for cood, xyz in self.coods_xyz)
+
+    def status_to_rubiks(self) :
+        for cood in self.coods : 
+            v = tuple(self.status[self.coods_xyz.index((cood,n))] for n in range(3))
+            self.rubiks.update({cood:v })
+
+    def create_mapping (self):
+        mapping = []
+        for move in self.moves:
+            self.rubiks = {cood: (self.coods_xyz.index((cood,0)),
+                                  self.coods_xyz.index((cood,1)),
+                                  self.coods_xyz.index((cood,2))) for cood in self.coods}
+            self.rubiks_move(move)
+            mapping.append(tuple (self.rubiks[cood][xyz]  for cood, xyz in self.coods_xyz)) 
+        self.mapping = tuple(mapping)
+        
+    def map_move(self, move_id):
+        mapping = self.mapping[move_id]
+        self.status = [self.status[mapping[cid]] for cid in
+                       range(len(self.coods_xyz))]
+
     # This is not the most efficient way to twist a face. But it is how we
     # think in brain. The efficiency should be left for compiler to consider
-    # move = ( pos or nag ,  xyz ,  angle/90 ) 
+    # move = ( pos or nag ,  xyz ,  angle/90 )  In total 2 * 3 * 3 = 18 moves 
     def rubiks_move(self, move):
         face =(move[0],move[1])
         self.pick_faces(face)
@@ -53,12 +76,12 @@ class rubik3 :
             self.rotate_1yz_90()
         self.unpick_faces(face)
 
-    def pick_faces(self,face =(1 , 0)):
+    def pick_faces(self,face):
         self.rotate_xyz_rubiks(face[1]) 
         if face[0] == -1: 
             self.flip_rubiks() 
 
-    def unpick_faces(self,face =(1 , 0)):
+    def unpick_faces(self,face):
         if face[0] == -1:
             self.flip_rubiks() 
         self.rotate_xyz_rubiks(3 - face[1] ) 
@@ -69,9 +92,12 @@ class rubik3 :
     def rotate_xyz_rubiks (self, n):
         self.rubiks = { self.opg.cshift_list(k,n) : self.opg.cshift_list(v,n) for k,v in self.rubiks.items()}
 
+    def rotate_1yz_90(self):
+        return self.rubiks.update({(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
+                      self.rubiks.items() if k[0] == 1})
+
     def paint_rubiks (self):
         co = next(self.color)
-        print(co)
         self.rubiks.update({k :((co,) + v[1:]) for k,v in self.rubiks.items() if k[0] == 1})
 
     def show_faces(self,face):
@@ -85,12 +111,6 @@ class rubik3 :
         for face in self.faces:
             self.show_faces(face) 
 
-    def rotate_1yz_90(self):
-        fa = {(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
-              self.rubiks.items() if k[0] == 1}
-        print(fa)
-        return self.rubiks.update({(k[0], -k[2], k[1]): (v[0],v[2],v[1]) for k,v in
-                      self.rubiks.items() if k[0] == 1})
 
 class op_generator:
 
