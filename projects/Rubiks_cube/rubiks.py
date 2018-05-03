@@ -21,9 +21,7 @@ class rubik3 :
 
         # xyz faces - position in face
         self.faces = tuple(product([-1, 1],[0, 1, 2 ])) # (pos-neg , xyz )
-        self.yz_cood = tuple(product([-1, 0, 1],[-1, 0, 1])) 
-        self.faces_yz = tuple(product(self.faces, self.yz_cood)) 
-    
+
         self.moves= tuple(product([-1, 1],[0, 1, 2 ],[90,180,270])) 
 
         self.rubiks = tuple() 
@@ -52,22 +50,23 @@ class rubik3 :
             self.rubiks.update({cood:v })
 
     def create_mapping (self):
-        mapping = []
+        #  { data o : data o} -> {data n : data o}  ->  { id n : id o }
+        self.mapping =() 
         for move in self.moves:
-            self.rubiks = {cood: (self.coods_xyz.index((cood,0)),
-                                  self.coods_xyz.index((cood,1)),
-                                  self.coods_xyz.index((cood,2))) for cood in self.coods}
+            self.rubiks = {cood: ((cood,0), (cood,1),(cood,2)) for cood in self.coods}
             self.rubiks_move(move)
-            mapping.append(tuple (self.rubiks[cood][xyz]  for cood, xyz in self.coods_xyz)) 
-        self.mapping = tuple(mapping)
+            move_mapping= tuple(self.rubiks[cood][xyz]  for cood, xyz in self.coods_xyz) 
+            self.mapping += (tuple(map(self.coods_xyz.index, move_mapping)),)
         
     def map_move(self, move_id):
         mapping = self.mapping[move_id]
         self.status = [self.status[mapping[cid]] for cid in
                        range(len(self.coods_xyz))]
-
     # This is not the most efficient way to twist a face. But it is how we
     # think in brain. The efficiency should be left for compiler to consider
+    # All rubik moves could be composed by flip, select axies, rotate the
+    # selected face to specific angle, then return the rubiks back to origional 
+    # perspective for next move. 
     # move = ( pos or nag ,  xyz ,  angle/90 )  In total 2 * 3 * 3 = 18 moves 
     def rubiks_move(self, move):
         face =(move[0],move[1])
@@ -85,6 +84,7 @@ class rubik3 :
         if face[0] == -1:
             self.flip_rubiks() 
         self.rotate_xyz_rubiks(3 - face[1] ) 
+
 
     def flip_rubiks (self):
         self.rubiks = { (-k[0],) + k[1:] : v for k,v in self.rubiks.items()}
