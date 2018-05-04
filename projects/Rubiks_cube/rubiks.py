@@ -5,7 +5,7 @@ from importlib import reload
 # pickle save objects
 import pickle,gzip
 from itertools import * 
-
+import time
 class rubik3 :
     color = cycle('rgbwyp')
 
@@ -14,9 +14,13 @@ class rubik3 :
         self.n = 40 
         self.span =[x for x in range(-self.n, self.n + 1)] 
 
+        t = time.time()
         # position in cubic - axies 
         self.coods = tuple(cood for cood in product(self.span, self.span, self.span)
                                               if -self.n in cood or self.n in cood) 
+
+        print ('coods ready  in ', time.time()-t)
+        t = time.time()
 
         # tool for rotating face, no guarantee what's in it. 
         self.rubiks = { cood: ['no_id','no_id','no_id'] for cood in self.coods}
@@ -27,9 +31,15 @@ class rubik3 :
 
         yz= tuple(x for x in product(self.span, self.span)) # (pos in face)
         
+        print ('rubiks and face ready  in ', time.time()-t)
+        t = time.time()
+
         self.faces_yz= tuple(face_yz for face_yz in product(self.faces, yz))# (faces, (y,z)) index is id
         self.cood_axis = ()  # (cood,axis) index is id 
+        self.cood_axis_id = {}  # (cood,aix) : id
         self.map_cood_axis_id()
+        print ('mapping to id ready  in ', time.time()-t)
+        t = time.time()
 
         self.moves= tuple(x for x in product(self.faces, [90,180,270])) 
         self.mapping = {} # {move : mapping = (new_id) } index of new_id is old_id  
@@ -54,13 +64,15 @@ class rubik3 :
             self.rubiks = {cood :(id,-1,-1)} 
             self.unpick_faces(face)
             self.cood_axis += tuple((cood,axis) for cood in self.rubiks.keys())
+            self.cood_axis_id.update({(cood,axis):id for cood in
+                                      self.rubiks.keys()}) 
  
     def rubiks_to_status (self) :
         self.status = tuple(self.rubiks[cood][axis] for cood, axis in self.cood_axis)
 
     def status_to_rubiks(self) :
         for cood in self.coods : 
-            v = tuple(self.status[self.cood_axis.index((cood,n))] for n in range(3))
+            v = tuple(self.status[self.cood_axis_id[(cood,n)]] for n in range(3))
             self.rubiks.update({cood:v})
 
     def create_mapping (self):
@@ -68,11 +80,10 @@ class rubik3 :
         # store the index structure direct in value    value[index_struct] = index_struct
         self.mapping = {}
         for move in self.moves:
-            print('move is ', move) 
             self.rubiks = {cood: ((cood,0), (cood,1),(cood,2)) for cood in self.coods}
             self.rubiks_move(move)
             move_mapping= tuple(self.rubiks[cood][axis] for cood,axis in self.cood_axis) 
-            self.mapping.update({move:tuple(map(self.cood_axis.index, move_mapping))})
+            self.mapping.update({move:tuple(self.cood_axis_id[(cood,axis)] for cood,axis in move_mapping)})
         
     def map_move(self, move):
         self.status = [self.status[nid] for nid in self.mapping[move]]
