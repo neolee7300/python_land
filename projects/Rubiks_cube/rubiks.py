@@ -11,7 +11,7 @@ class rubik3 :
 
     def __init__(self) :
 
-        self.n = 1 
+        self.n = 40 
         self.span =[x for x in range(-self.n, self.n + 1)] 
 
         # position in cubic - axies 
@@ -37,7 +37,7 @@ class rubik3 :
 
         self.init_rubiks()
         self.rubiks_to_status()
-        print(self.rubiks)
+        #print(self.rubiks)
     
     def init_rubiks (self) :
         for face in self.faces : 
@@ -47,7 +47,7 @@ class rubik3 :
 
     # grid is (cood, gn) = face,y,z is an object with (id, color, ... ),  
     def map_cood_axis_id (self):
-        print(self.faces_yz)
+        #print(self.faces_yz)
         for id,(face,(y,z)) in enumerate(self.faces_yz) :
             self.pick_faces(face)
             cood, axis = (self.n,y,z), face[1] 
@@ -68,14 +68,25 @@ class rubik3 :
         # store the index structure direct in value    value[index_struct] = index_struct
         self.mapping = {}
         for move in self.moves:
+            print('move is ', move) 
             self.rubiks = {cood: ((cood,0), (cood,1),(cood,2)) for cood in self.coods}
             self.rubiks_move(move)
             move_mapping= tuple(self.rubiks[cood][axis] for cood,axis in self.cood_axis) 
-
             self.mapping.update({move:tuple(map(self.cood_axis.index, move_mapping))})
         
     def map_move(self, move):
         self.status = [self.status[nid] for nid in self.mapping[move]]
+    
+    def shrink_mapping(self):
+        self.s_mapping = {}
+        for move in self.moves:
+            mapping =  self.mapping[move]
+            s_mapping = {id:nid for id , nid in enumerate(mapping) if id != nid}
+            self.s_mapping.update({move:s_mapping})
+
+    def s_map_move(self, move):
+        self.status = [self.status[nid] for id,nid in
+                       self.s_mapping[move].items()]
     # This is not the most efficient way to twist a face. But it is how we
     # think in brain. The efficiency should be left for compiler to consider
     # All rubik moves could be composed by flip, select axies, rotate the
@@ -132,7 +143,6 @@ class rubik3 :
 def main():
     reload(sys)                         # 2
     rb = rubiks()
-    print(list(rb.coods))
 
 if __name__ == '__main__':
     main()
