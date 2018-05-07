@@ -121,6 +121,7 @@ A Nth rank Rubik cubic has six faces (+x, -x, +y...), 6 * N * N grids
 1. Some operations on  (cood, (x,y,z)) are just linear combination of operations on (cood,x) (cood,y) (cood,z) such as
    op flip(Fx), shift XYZ (Sxyz). While other operation can not be derived from operations on (cood,x), such as rotating
    the +X 90 degree (R90)
+1. shift XYZ in right hand order is a different operation from rotate +X plane  
 1. ID descriptions such as (cood,x) could serve as dictionary keys. While the  ID group should use dictionary in
    dictionary to store values.  
 
