@@ -23,24 +23,22 @@ class rubik3 :
         t = time.time()
 
         # tool for rotating face, no guarantee what's in it. 
-        self.rubiks = { cood: ['no_id','no_id','no_id'] for cood in self.coods}
+        self.rubiks = { cood:(-12345,-12345,-12345) for cood in self.coods}
 
         # face - position in current face
         self.faces =tuple(x for x in product([-self.n , self.n],[0, 1, 2 ])) # (pos-neg , axies)
         self.face_color = { face : next(self.color) for face in self.faces}
 
-        yz= tuple(x for x in product(self.span, self.span)) # (pos in face)
-        
-        print ('rubiks and face ready  in ', time.time()-t)
-        t = time.time()
+        self.yz= tuple(x for x in product(self.span, self.span)) # (pos in face)
+        self.faces_yz = tuple(face_yz for face_yz in product(self.faces, self.yz))# (faces, (y,z)) index is id
+        self.faces_yz_id = {face_yz:id for id,face_yz in enumerate(self.faces_yz)} 
 
-        self.faces_yz= tuple(face_yz for face_yz in product(self.faces, yz))# (faces, (y,z)) index is id
         self.cood_axis = ()  # (cood,axis) index is id 
         self.cood_axis_id = {}  # (cood,aix) : id
         self.map_cood_axis_id()
-        print ('mapping to id ready  in ', time.time()-t)
-        t = time.time()
 
+        print ('cod map ready  in ', time.time()-t)
+        t = time.time()
         self.moves= tuple(x for x in product(self.faces, [90,180,270])) 
         self.mapping = {} # {move : mapping = (new_id) } index of new_id is old_id  
         self.create_mapping() #
@@ -55,18 +53,26 @@ class rubik3 :
             self.paint_rubiks() 
             self.unpick_faces(face)
 
-    # grid is (cood, gn) = face,y,z is an object with (id, color, ... ),  
+    # grid is (cood, axis) = face,y,z is an object with (id, color, ... ),  
+    # (face,(y,z)) is natural way to go through grid and put things in it
+    # (cood,(x,y,z)) can put all motion related grid together for transformation
+    # (cood, axis) help grid in (cood,(x,y,z)) to get its id
+    # we need a (face,(y,z)) to cood, axis converter
     def map_cood_axis_id (self):
-        #print(self.faces_yz)
-        for id,(face,(y,z)) in enumerate(self.faces_yz) :
+        # paint gids with their id 
+        for face in self.faces : 
             self.pick_faces(face)
-            cood, axis = (self.n,y,z), face[1] 
-            self.rubiks = {cood :(id,-1,-1)} 
+            for y,z in self.yz : 
+                cood, id = (self.n, y, z), self.faces_yz_id[(face,(y,z))]
+                v = self.rubiks[cood]
+                self.rubiks.update({cood:(id,) + v[1:]})
             self.unpick_faces(face)
-            self.cood_axis += tuple((cood,axis) for cood in self.rubiks.keys())
-            self.cood_axis_id.update({(cood,axis):id for cood in
-                                      self.rubiks.keys()}) 
- 
+
+        self.cood_axis_id.update({(cood,axis):id[axis] for (cood,id),axis in
+                                  product(self.rubiks.items(), [0,1,2]) if id[axis] > -1 }) 
+        # tuple by keys sorted by values
+        self.cood_axis = tuple(vs for ks, vs in sorted((v,k) for k,v in self.cood_axis_id.items()))
+
     def rubiks_to_status (self) :
         self.status = tuple(self.rubiks[cood][axis] for cood, axis in self.cood_axis)
 
@@ -79,11 +85,15 @@ class rubik3 :
         #  { data o : data o} -> {data n : data o}  ->  { id n : id o }
         # store the index structure direct in value    value[index_struct] = index_struct
         self.mapping = {}
+        t = time.time()
         for move in self.moves:
             self.rubiks = {cood: ((cood,0), (cood,1),(cood,2)) for cood in self.coods}
             self.rubiks_move(move)
             move_mapping= tuple(self.rubiks[cood][axis] for cood,axis in self.cood_axis) 
             self.mapping.update({move:tuple(self.cood_axis_id[(cood,axis)] for cood,axis in move_mapping)})
+
+            print (move, 'map ready  in ', time.time()-t)
+            t = time.time()
         
     def map_move(self, move):
         self.status = [self.status[nid] for nid in self.mapping[move]]
